@@ -1,0 +1,44 @@
+[project]
+name = "cordconv2d"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "anyio>=4.15.1",
+    "dxcam>=0.3.0",
+    "ffmpeg-python>=0.2.0",
+    "librosa>=1.0.0",
+    "lightning>=2.6.6",
+    "mss>=10.2.0",
+    "numpy>=2.5.4",
+    "opencv-python>=5.0.0.93",
+    "osrparse>=7.0.1",
+    "osu-py[async]>=4.3.1",
+    "pyautogui>=0.9.54",
+    "pynput>=1.8.2",
+    "pytest>=9.2.0",
+    "python-dotenv>=1.2.4",
+    "scikit-learn>=1.9.1",
+    "torch>=2.14.1",
+    "torchinfo>=1.8.0",
+    "torchvision>=0.29.1",
+    "ultralytics>=8.4.175",
+]
+
+[project.scripts]
+cordconv2d = "cordconv2d:main"
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-132", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-132", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
+mss = { git = "https://github.com/BoboTiG/python-mss" }
+
+[[tool.uv.index]]
+name = "pytorch-132"
+url = "https://download.pytorch.org/whl/cu132"
+explicit = true
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
