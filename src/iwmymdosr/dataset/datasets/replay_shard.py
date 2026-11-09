@@ -4,8 +4,8 @@ import random
 
 import torch as t
 
-from cordconv2d.dataset.datasets.preprocess import sample
-from cordconv2d.dataset.datasets.utils import read_dataset_meta
+from iwmymdosr.dataset.datasets.preprocess import sample
+from iwmymdosr.dataset.datasets.utils import read_dataset_meta
 
 class ReplayShards(t.utils.data.IterableDataset):
     def __init__(self, shard_dir: PathLike[str] | str, limit = None, shuffle: bool = True,

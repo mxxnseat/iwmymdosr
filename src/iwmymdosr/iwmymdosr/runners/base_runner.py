@@ -7,12 +7,12 @@ from numpy.typing import NDArray
 import torch as t
 import time
 
-from cordconv2d.dataset.datasets.objects import Meta
-from cordconv2d.dataset.datasets.preprocess import process_frame, sample
-from cordconv2d.dataset.datasets.shard_loader import ShardLoader
-from cordconv2d.iwmymdosr.utils import denormalize_output
-from cordconv2d.model.evaluate import evaluate
-from cordconv2d.model.model import Iwmymdosr
+from iwmymdosr.dataset.datasets.objects import Meta
+from iwmymdosr.dataset.datasets.preprocess import process_frame, sample
+from iwmymdosr.dataset.datasets.shard_loader import ShardLoader
+from iwmymdosr.iwmymdosr.utils import denormalize_output
+from iwmymdosr.model.evaluate import evaluate
+from iwmymdosr.model.model import Iwmymdosr
 
 
 Frame = NDArray[np.uint8]

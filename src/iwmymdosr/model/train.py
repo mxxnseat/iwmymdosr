@@ -1,10 +1,10 @@
 from os import PathLike
 
 import torch as t
-from cordconv2d.dataset.datasets.objects import Meta
-from cordconv2d.dataset.datasets.replay_shard import ReplayShards
-from cordconv2d.model.early_stopping import EarlyStopping
-from cordconv2d.model.model import Iwmymdosr
+from iwmymdosr.dataset.datasets.objects import Meta
+from iwmymdosr.dataset.datasets.replay_shard import ReplayShards
+from iwmymdosr.model.early_stopping import EarlyStopping
+from iwmymdosr.model.model import Iwmymdosr
 
 def get_pos_weight(dataset: t.utils.data.DataLoader):
     total = 0

@@ -1,4 +1,4 @@
-from cordconv2d.dataset.datasets.replay_shard_builder import ReplayShardBuilder
+from iwmymdosr.dataset.datasets.replay_shard_builder import ReplayShardBuilder
 import argparse
 
 if __name__ == "__main__":

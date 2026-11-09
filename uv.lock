@@ -398,59 +398,6 @@ wheels = [
 ]
 
 [[package]]
-name = "cordconv2d"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "anyio" },
-    { name = "dxcam" },
-    { name = "ffmpeg-python" },
-    { name = "librosa" },
-    { name = "lightning" },
-    { name = "mss" },
-    { name = "numpy" },
-    { name = "opencv-python" },
-    { name = "osrparse" },
-    { name = "osu-py", extra = ["async"] },
-    { name = "pyautogui" },
-    { name = "pynput" },
-    { name = "pytest" },
-    { name = "python-dotenv" },
-    { name = "scikit-learn" },
-    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux' and sys_platform != 'win32'" },
-    { name = "torch", version = "2.14.1+cu132", source = { registry = "https://download.pytorch.org/whl/cu132" }, marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "torchinfo" },
-    { name = "torchvision", version = "0.29.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux' and sys_platform != 'win32'" },
-    { name = "torchvision", version = "0.29.1+cu132", source = { registry = "https://download.pytorch.org/whl/cu132" }, marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "ultralytics" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "anyio", specifier = ">=4.15.1" },
-    { name = "dxcam", specifier = ">=0.3.0" },
-    { name = "ffmpeg-python", specifier = ">=0.2.0" },
-    { name = "librosa", specifier = ">=1.0.0" },
-    { name = "lightning", specifier = ">=2.6.6" },
-    { name = "mss", git = "https://github.com/BoboTiG/python-mss" },
-    { name = "numpy", specifier = ">=2.5.4" },
-    { name = "opencv-python", specifier = ">=5.0.0.93" },
-    { name = "osrparse", specifier = ">=7.0.1" },
-    { name = "osu-py", extras = ["async"], specifier = ">=4.3.1" },
-    { name = "pyautogui", specifier = ">=0.9.54" },
-    { name = "pynput", specifier = ">=1.8.2" },
-    { name = "pytest", specifier = ">=9.2.0" },
-    { name = "python-dotenv", specifier = ">=1.2.4" },
-    { name = "scikit-learn", specifier = ">=1.9.1" },
-    { name = "torch", marker = "sys_platform != 'linux' and sys_platform != 'win32'", specifier = ">=2.14.1" },
-    { name = "torch", marker = "sys_platform == 'linux' or sys_platform == 'win32'", specifier = ">=2.14.1", index = "https://download.pytorch.org/whl/cu132" },
-    { name = "torchinfo", specifier = ">=1.8.0" },
-    { name = "torchvision", marker = "sys_platform != 'linux' and sys_platform != 'win32'", specifier = ">=0.29.1" },
-    { name = "torchvision", marker = "sys_platform == 'linux' or sys_platform == 'win32'", specifier = ">=0.29.1", index = "https://download.pytorch.org/whl/cu132" },
-    { name = "ultralytics", specifier = ">=8.4.175" },
-]
-
-[[package]]
 name = "cuda-bindings"
 version = "13.4.3"
 source = { registry = "https://pypi.org/simple" }
@@ -737,6 +684,59 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/01/e1/2069291243c926a2ff1cd706c7f3eeb9b62144bf60f77c9fb9ff2fb26bd3/iniconfig-2.3.1.tar.gz", hash = "sha256:67f4b9c50da0dedf52af349e7749a80a9057a5031199791b906c3bb3ae878960", size = 21209, upload-time = "2026-10-06T22:48:38.076Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/56/43/4ca9e49d27a1fcf6bece6f6aec0ea46bb9112489b93d4b688fb415457bdb/iniconfig-2.3.1-py3-none-any.whl", hash = "sha256:9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7", size = 7552, upload-time = "2026-10-06T22:48:36.959Z" },
+]
+
+[[package]]
+name = "iwmymdosr"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "anyio" },
+    { name = "dxcam" },
+    { name = "ffmpeg-python" },
+    { name = "librosa" },
+    { name = "lightning" },
+    { name = "mss" },
+    { name = "numpy" },
+    { name = "opencv-python" },
+    { name = "osrparse" },
+    { name = "osu-py", extra = ["async"] },
+    { name = "pyautogui" },
+    { name = "pynput" },
+    { name = "pytest" },
+    { name = "python-dotenv" },
+    { name = "scikit-learn" },
+    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux' and sys_platform != 'win32'" },
+    { name = "torch", version = "2.14.1+cu132", source = { registry = "https://download.pytorch.org/whl/cu132" }, marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "torchinfo" },
+    { name = "torchvision", version = "0.29.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux' and sys_platform != 'win32'" },
+    { name = "torchvision", version = "0.29.1+cu132", source = { registry = "https://download.pytorch.org/whl/cu132" }, marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "ultralytics" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anyio", specifier = ">=4.15.1" },
+    { name = "dxcam", specifier = ">=0.3.0" },
+    { name = "ffmpeg-python", specifier = ">=0.2.0" },
+    { name = "librosa", specifier = ">=1.0.0" },
+    { name = "lightning", specifier = ">=2.6.6" },
+    { name = "mss", git = "https://github.com/BoboTiG/python-mss" },
+    { name = "numpy", specifier = ">=2.5.4" },
+    { name = "opencv-python", specifier = ">=5.0.0.93" },
+    { name = "osrparse", specifier = ">=7.0.1" },
+    { name = "osu-py", extras = ["async"], specifier = ">=4.3.1" },
+    { name = "pyautogui", specifier = ">=0.9.54" },
+    { name = "pynput", specifier = ">=1.8.2" },
+    { name = "pytest", specifier = ">=9.2.0" },
+    { name = "python-dotenv", specifier = ">=1.2.4" },
+    { name = "scikit-learn", specifier = ">=1.9.1" },
+    { name = "torch", marker = "sys_platform != 'linux' and sys_platform != 'win32'", specifier = ">=2.14.1" },
+    { name = "torch", marker = "sys_platform == 'linux' or sys_platform == 'win32'", specifier = ">=2.14.1", index = "https://download.pytorch.org/whl/cu132" },
+    { name = "torchinfo", specifier = ">=1.8.0" },
+    { name = "torchvision", marker = "sys_platform != 'linux' and sys_platform != 'win32'", specifier = ">=0.29.1" },
+    { name = "torchvision", marker = "sys_platform == 'linux' or sys_platform == 'win32'", specifier = ">=0.29.1", index = "https://download.pytorch.org/whl/cu132" },
+    { name = "ultralytics", specifier = ">=8.4.175" },
 ]
 
 [[package]]

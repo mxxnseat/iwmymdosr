@@ -9,13 +9,13 @@ import cv2
 import librosa
 import numpy as np
 
-from cordconv2d.dataset.datasets.preprocess import process_frame
-from cordconv2d.dataset.datasets.shard_writer import ShardWriter
-from cordconv2d.dataset.osu.map_parser import get_hit_objects, get_preempt
-from cordconv2d.dataset.osu.objects import HitObject, MapDifficulty, MapGeneral, Replay
-from cordconv2d.dataset.osu.replay_parser import load_replay
-from cordconv2d.dataset.osu.scrapper.unzip import lookup_specific_diff
-from cordconv2d.dataset.osu.utils import derive_transform, osu_to_px
+from iwmymdosr.dataset.datasets.preprocess import process_frame
+from iwmymdosr.dataset.datasets.shard_writer import ShardWriter
+from iwmymdosr.dataset.osu.map_parser import get_hit_objects, get_preempt
+from iwmymdosr.dataset.osu.objects import HitObject, MapDifficulty, MapGeneral, Replay
+from iwmymdosr.dataset.osu.replay_parser import load_replay
+from iwmymdosr.dataset.osu.scrapper.unzip import lookup_specific_diff
+from iwmymdosr.dataset.osu.utils import derive_transform, osu_to_px
 import scipy.signal as signal
 import scipy.stats as stats
 

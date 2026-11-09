@@ -1,10 +1,10 @@
 from pathlib import Path
 import torch as t
 
-from cordconv2d.dataset.datasets.replay_shard import ReplayShards
-from cordconv2d.dataset.datasets.utils import read_dataset_meta
-from cordconv2d.model.train import train
-from cordconv2d.model.model import Iwmymdosr
+from iwmymdosr.dataset.datasets.replay_shard import ReplayShards
+from iwmymdosr.dataset.datasets.utils import read_dataset_meta
+from iwmymdosr.model.train import train
+from iwmymdosr.model.model import Iwmymdosr
 
 def init(m):
     if isinstance(m, (t.nn.Linear, t.nn.Conv2d)):

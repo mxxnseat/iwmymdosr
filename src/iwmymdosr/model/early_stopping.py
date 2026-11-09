@@ -4,7 +4,7 @@ import torch as t
 from os import PathLike
 import time
 
-from cordconv2d.model.model import Iwmymdosr
+from iwmymdosr.model.model import Iwmymdosr
 
 class EarlyStopping:
     def __init__(self, model: Iwmymdosr, model_dir: PathLike[str] | str, model_prefix = time.time(), best_only = True, patience = 5, min_delta = 1e-4):

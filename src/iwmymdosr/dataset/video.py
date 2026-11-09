@@ -6,12 +6,12 @@ import os
 from pathlib import Path
 import sys
 import time
-import cordconv2d.dataset.danser as danser
+import iwmymdosr.dataset.danser as danser
 import ffmpeg
 
-from cordconv2d.dataset.danser import get_download_replay_cmd
-from cordconv2d.dataset.osu.scrapper.unzip import lookup_specific_diff
-from cordconv2d.utils.main import log
+from iwmymdosr.dataset.danser import get_download_replay_cmd
+from iwmymdosr.dataset.osu.scrapper.unzip import lookup_specific_diff
+from iwmymdosr.utils.main import log
 
 async def pump(stream):
     while True:

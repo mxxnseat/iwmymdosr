@@ -9,7 +9,7 @@ from typing import Callable
 import aiohttp
 import anyio
 from osu.exceptions import RequestException
-from cordconv2d.utils.main import log
+from iwmymdosr.utils.main import log
 
 class RateLimiter:
     def __init__(self, rate: float):

@@ -3,8 +3,8 @@ from pathlib import Path
 import numpy as np
 import torch as t
 
-from cordconv2d.dataset.datasets.utils import write_dataset_meta
-from cordconv2d.utils.main import RunningStd
+from iwmymdosr.dataset.datasets.utils import write_dataset_meta
+from iwmymdosr.utils.main import RunningStd
 
 class ShardWriter:
     """Buffers samples and flushes a shard file every `samples_per_shard`."""

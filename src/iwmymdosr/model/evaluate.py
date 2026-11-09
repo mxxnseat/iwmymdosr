@@ -1,4 +1,4 @@
-from cordconv2d.model.model import Iwmymdosr
+from iwmymdosr.model.model import Iwmymdosr
 import torch as t
 
 @t.no_grad

@@ -1,6 +1,6 @@
 from pathlib import Path
 from osrparse import Mod
-from cordconv2d.dataset.osu.objects import HitObject, MapDifficulty, MapGeneral, Replay, Transform
+from iwmymdosr.dataset.osu.objects import HitObject, MapDifficulty, MapGeneral, Replay, Transform
 
 def apply_stacking(hit_objects: list[HitObject], difficulty: MapDifficulty) -> list[HitObject]:
     cs = difficulty.cs

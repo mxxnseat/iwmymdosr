@@ -1,5 +1,5 @@
 from osrparse import Replay, Key, ReplayEventOsu, Mod
-import cordconv2d.dataset.osu.objects as osu_objects
+import iwmymdosr.dataset.osu.objects as osu_objects
 import numpy as np
 
 def is_key_pressed(keys: Key) -> bool:

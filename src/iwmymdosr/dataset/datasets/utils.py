@@ -4,7 +4,7 @@ from pathlib import Path
 from dataclasses import asdict
 
 import numpy as np
-from cordconv2d.dataset.datasets.objects import Meta
+from iwmymdosr.dataset.datasets.objects import Meta
 
 META_FILENAME = "index.json"
 

@@ -1,7 +1,7 @@
 import asyncio
 import anyio
 
-from cordconv2d.utils.main import log
+from iwmymdosr.utils.main import log
 
 def where(t: asyncio.Task) -> str:
     c = t.get_coro()

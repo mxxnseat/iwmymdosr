@@ -6,12 +6,12 @@ import cv2
 import numpy as np
 import torch as t
 
-from cordconv2d.dataset.datasets.objects import Meta
-from cordconv2d.dataset.datasets.preprocess import process_frame, sample
-from cordconv2d.dataset.datasets.shard_loader import ShardLoader
-from cordconv2d.iwmymdosr.utils import denormalize_output
-from cordconv2d.model.evaluate import evaluate
-from cordconv2d.model.model import Iwmymdosr
+from iwmymdosr.dataset.datasets.objects import Meta
+from iwmymdosr.dataset.datasets.preprocess import process_frame, sample
+from iwmymdosr.dataset.datasets.shard_loader import ShardLoader
+from iwmymdosr.iwmymdosr.utils import denormalize_output
+from iwmymdosr.model.evaluate import evaluate
+from iwmymdosr.model.model import Iwmymdosr
 
 class DebugRunner:
     def __init__(self, model: Iwmymdosr, meta: Meta, device, shard_loader: ShardLoader, debug_resolution: tuple[int, int], debug_dir: PathLike[str] | str):

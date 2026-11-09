@@ -1,7 +1,7 @@
 import torch as t
 
-from cordconv2d.model.modules.cord_conv_2d import CoordConv2d
-from cordconv2d.model.modules.spatial_softmax import SpatialSoftmax
+from iwmymdosr.model.modules.cord_conv_2d import CoordConv2d
+from iwmymdosr.model.modules.spatial_softmax import SpatialSoftmax
 
 def block(in_feat, out_f, kernel, stride=1, padding=0, bias=True):
     return t.nn.Sequential(

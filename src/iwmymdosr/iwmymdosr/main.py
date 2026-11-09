@@ -1,9 +1,9 @@
 from pynput import keyboard
 import torch as t
 
-from cordconv2d.dataset.datasets.utils import read_dataset_meta
-from cordconv2d.iwmymdosr.runners.runner import Runner
-from cordconv2d.model.model import Iwmymdosr
+from iwmymdosr.dataset.datasets.utils import read_dataset_meta
+from iwmymdosr.iwmymdosr.runners.runner import Runner
+from iwmymdosr.model.model import Iwmymdosr
 
 is_playing = False
 

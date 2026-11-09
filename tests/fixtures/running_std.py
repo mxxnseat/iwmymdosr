@@ -1,6 +1,6 @@
 import pytest
 
-from cordconv2d.utils.main import RunningStd
+from iwmymdosr.utils.main import RunningStd
 
 @pytest.fixture
 def running_std():

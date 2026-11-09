@@ -1,8 +1,8 @@
 import dxcam
 
-from cordconv2d.dataset.datasets.objects import Meta
-from cordconv2d.iwmymdosr.runners.base_runner import BaseRunner
-from cordconv2d.model.model import Iwmymdosr
+from iwmymdosr.dataset.datasets.objects import Meta
+from iwmymdosr.iwmymdosr.runners.base_runner import BaseRunner
+from iwmymdosr.model.model import Iwmymdosr
 import pyautogui as pag
 
 class Runner(BaseRunner):

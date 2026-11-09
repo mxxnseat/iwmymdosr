@@ -15,13 +15,13 @@ from osrparse import Replay
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
 from dotenv import load_dotenv
 from osrparse import Mod
-import cordconv2d.dataset.osu.map_parser as map_parser
-from cordconv2d.dataset.osu.scrapper.monkey_patches import apply_monkey_patches
-import cordconv2d.dataset.osu.scrapper.unzip as scrapper_unzip
+import iwmymdosr.dataset.osu.map_parser as map_parser
+from iwmymdosr.dataset.osu.scrapper.monkey_patches import apply_monkey_patches
+import iwmymdosr.dataset.osu.scrapper.unzip as scrapper_unzip
 from osu import AsynchronousAuthHandler, AsynchronousClient, Beatmap, BeatmapsetSearchSort, GameModeInt, GameModeStr, LazerMod, LegacyScore, Mods, RankStatus, RequestException, Scope, BeatmapsetSearchFilter
-from cordconv2d.dataset.osu.scrapper.network import RateLimiter, retry, network_policy, io_policy, any_of
-from cordconv2d.utils.main import log
-from cordconv2d.dataset.osu.scrapper.watchdog import watchdog
+from iwmymdosr.dataset.osu.scrapper.network import RateLimiter, retry, network_policy, io_policy, any_of
+from iwmymdosr.utils.main import log
+from iwmymdosr.dataset.osu.scrapper.watchdog import watchdog
 
 MIRRORS = [
     lambda beatmap: f"https://osu.direct/api/d/{beatmap.beatmapset_id}"

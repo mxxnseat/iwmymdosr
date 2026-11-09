@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 
-from cordconv2d.utils.main import RunningStd
+from iwmymdosr.utils.main import RunningStd
 
 def test_plain_std_equal_running(running_std):
     data = np.random.randint(low=1, high=1000, size=(random.randint(10, 100), 2))

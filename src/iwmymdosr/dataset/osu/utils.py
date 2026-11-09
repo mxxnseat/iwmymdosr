@@ -1,4 +1,4 @@
-from cordconv2d.dataset.osu.objects import Transform
+from iwmymdosr.dataset.osu.objects import Transform
 
 def derive_transform(W, H):
     s = H / 480
