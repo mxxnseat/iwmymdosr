@@ -1,7 +1,8 @@
+# Thanks to https://github.com/walsvid/CoordConv
+
 import torch
 import torch.nn as nn
 import torch.nn.modules.conv as conv
-
 
 class AddCoords(nn.Module):
     def __init__(self, rank, with_r=False, use_cuda=True):
