@@ -9,7 +9,6 @@ class Runner(BaseRunner):
     def __init__(self, model: Iwmymdosr, meta: Meta, device):
         super().__init__(model, meta, device)
 
-        # not testable shit
         pag.PAUSE = 0
         pag.FAILSAFE = False
 
@@ -18,6 +17,9 @@ class Runner(BaseRunner):
 
     def __del__(self):
         self.camera.stop()
+
+    def get_current_resolution(self) -> tuple[int, int]:
+        return (self.camera.width, self.camera.height)
 
     def get_frame(self):
         return self.camera.get_latest_frame()

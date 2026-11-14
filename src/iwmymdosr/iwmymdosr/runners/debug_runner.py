@@ -1,76 +1,58 @@
-from collections import deque
-from os import PathLike
-from pathlib import Path
-
 import cv2
-import numpy as np
-import torch as t
 
 from iwmymdosr.dataset.datasets.objects import Meta
-from iwmymdosr.dataset.datasets.preprocess import process_frame, sample
-from iwmymdosr.dataset.datasets.shard_loader import ShardLoader
-from iwmymdosr.iwmymdosr.utils import denormalize_output
-from iwmymdosr.model.evaluate import evaluate
+from iwmymdosr.iwmymdosr.runners.base_runner import BaseRunner
 from iwmymdosr.model.model import Iwmymdosr
+import torch as t
+import matplotlib.pyplot as plt
 
-class DebugRunner:
-    def __init__(self, model: Iwmymdosr, meta: Meta, device, shard_loader: ShardLoader, debug_resolution: tuple[int, int], debug_dir: PathLike[str] | str):
-        self.debug_resolution = debug_resolution
-        self.debug_dir = Path(debug_dir)
-        
-        self.shard_loader = shard_loader
-        self.device = device
-        self.meta = meta
-        self.model = model
-        self.queue = deque(maxlen=self.meta.frames_n)
-
-        self.batch = self.load_shard()
-        self.virtual_cursor = (60, 60)
-
-        self.cursor_history: list[tuple[int, int]] = [self.virtual_cursor]
+class DebugRunner(BaseRunner):
+    def __init__(self, model: Iwmymdosr, meta: Meta, device, data: t.utils.data.DataLoader):
+        super().__init__(model, meta, device)
+        self.loader = data
+        self.data = iter(data)
+        self.current_batch = None
+        self.frame_idx = 0
 
     def step(self):
-        shard = next(self.batch)
-        frames = shard["frames"][20] # torch.Size([3, 72, 128])
-        last_frame = frames[-1]
-        for frame_t in frames:
-            frame = np.asarray(frame_t)
-            bgr = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-            grayscaled_frame, _ = process_frame(bgr, self.meta.resolution)
-            current_mouse_position = self.get_mouse_position()
-            self.queue.append([t.from_numpy(grayscaled_frame), t.tensor([current_mouse_position[0], current_mouse_position[1]])])
-            if len(self.queue) == self.meta.frames_n:
-                self.run()
-                break
-        self.output(last_frame)
+        heatmap = super().step()
+        if heatmap is None:
+            return
+        plt.subplot(1, 4, 1)
+        plt.imshow(heatmap[0].cpu().numpy(), vmin=0.0, vmax=1.0) # type: ignore
+        plt.title("result")
 
-    def run(self):
-        frames = t.stack([item[0] for item in self.queue])
-        cursors = t.stack([item[1] for item in self.queue])
-        inp = sample(frames, cursors, 4.0, self.meta.resolution)
-        inp = inp.to(self.device)
-        dx_dy, _ = evaluate(self.model, inp.unsqueeze(0))
-        dx_dy = dx_dy.squeeze(0).tolist()
-        d = denormalize_output((dx_dy[0], dx_dy[1]), (self.debug_resolution[0], self.debug_resolution[1]), self.meta)
-        self.move_cursor(d)
+        for ind, frame in enumerate(self.queue, 2):
+            plt.subplot(1, 4, ind)
+            plt.imshow(frame, cmap="gray") # type: ignore
+            plt.title(f"frame #{ind-1}")
 
-    def output(self, circle):
-        image = cv2.cvtColor(np.asarray(circle), cv2.COLOR_GRAY2BGR)
-        s = 1
-        for cx, cy in self.cursor_history:
-            cv2.rectangle(image, (int(cx-s), int(cy-s)), (int(cx+s), int(cy+s)), (0, 0, 255), -1)
+        plt.tight_layout()
+        plt.show(block=False)
+        plt.pause(1.0)
+        plt.close()
 
-        cv2.imwrite(self.debug_dir / "test.jpg", image)
+    def get_current_resolution(self) -> tuple[int, int]:
+        return (self.meta.resolution[0], self.meta.resolution[1])
 
-    def load_shard(self):
-        return self.shard_loader.load()
+    def get_frame(self):
+        if self.current_batch is None or self.frame_idx >= self.current_batch.shape[0]:
+            try:
+                batch_x = next(self.data)[0]
+            except StopIteration:
+                self.data = iter(self.loader)
+                batch_x = next(self.data)[0]
 
+            self.current_batch = batch_x.reshape(-1, *batch_x.shape[-2:])
+            self.frame_idx = 0
+
+        frame = self.current_batch[self.frame_idx]
+        self.frame_idx += 1
+        bgr = cv2.cvtColor(frame.cpu().numpy(), cv2.COLOR_GRAY2BGR) * 255
+        return bgr
+    
     def move_cursor(self, d):
-        dx, dy = d
-        vc = (self.virtual_cursor[0] + dx, self.virtual_cursor[1] + dy)
-
-        self.virtual_cursor = vc
-        self.cursor_history.append(self.virtual_cursor)
+        return
 
     def get_mouse_position(self):
-        return self.virtual_cursor
+        return (0,0)

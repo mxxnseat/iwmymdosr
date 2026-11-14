@@ -1,3 +1,4 @@
+from collections import deque
 import math
 import random
 import shutil
@@ -11,45 +12,45 @@ import numpy as np
 
 from iwmymdosr.dataset.datasets.preprocess import process_frame
 from iwmymdosr.dataset.datasets.shard_writer import ShardWriter
-from iwmymdosr.dataset.osu.map_parser import get_hit_objects, get_preempt
+from iwmymdosr.dataset.osu.map_parser import get_hit_objects, get_preempt, hit_windows
 from iwmymdosr.dataset.osu.objects import HitObject, MapDifficulty, MapGeneral, Replay
 from iwmymdosr.dataset.osu.replay_parser import load_replay
 from iwmymdosr.dataset.osu.scrapper.unzip import lookup_specific_diff
 from iwmymdosr.dataset.osu.utils import derive_transform, osu_to_px
 import scipy.signal as signal
 import scipy.stats as stats
+import matplotlib.pyplot as plt
+from bisect import bisect_left
+from intervaltree import IntervalTree
 
 class ReplayShardBuilder:
     def __init__(
         self,
         source_dir: PathLike[str] | str,
         out_dir: PathLike[str] | str,
-        frames_n: int,
+        frames_number: int,
         samples_per_shard: int = 128,
         val_frac: float = 0.1,
         seed: int = 42,
         max_replays: int | None = None,
-        debug_folder=None,
+        debug_output=None,
         specific=None
     ):
         self.source_dir = Path(source_dir)
         self.out_dir = Path(out_dir)
-        self.frames_n = frames_n
+        self.frames_number = frames_number
         self.samples_per_shard = samples_per_shard
         self.val_frac = val_frac
         self.seed = seed
         self.max_replays = max_replays
-        self.debug_folder = debug_folder
+        self.debug_output = debug_output
         self.specific = specific
         self.video_resolution = self.get_videos_resolution(self.source_dir)
         self.resize_video_resolution = (128, int(128 / (self.video_resolution[0]/self.video_resolution[1])))
 
     def build(self):
-        if self.debug_folder:
-            shutil.rmtree(self.debug_folder, ignore_errors=True)
-
         W, H = self.resize_video_resolution
-        mb = self.samples_per_shard * self.frames_n * W * H / 1e6
+        mb = self.samples_per_shard * self.frames_number * W * H / 1e6
         print(f"~{mb:.0f} MB per shard ({self.samples_per_shard} samples, {W}x{H})")
 
         self._inputs = self._collect_inputs()
@@ -64,7 +65,7 @@ class ReplayShardBuilder:
         for name, replay_files in splits.items():
             if not replay_files:
                 continue
-            meta = {"frames_n": self.frames_n, "resolution": [W, H]}
+            meta = {"frames_number": self.frames_number, "resolution": [W, H]}
             writer = ShardWriter(self.out_dir / name, self.samples_per_shard, meta)
             for replay_file in replay_files:
                 try:
@@ -112,44 +113,23 @@ class ReplayShardBuilder:
 
         replay = load_replay(replay_file)
         diff, map_general, hit_objects = get_hit_objects(osu, replay)
-        self._extract(replay_file, map_general, diff, hit_objects, writer)
+        self._extract(replay_file, map_general, hit_objects, diff, writer)
 
-    def cursor_at(self, data, step: float):
-        ts = np.arange(data[0, 0], data[-1, 0] - step, step)
+    def show_debug(self, frames: deque, labels: np.ndarray):
+        frames_len = len(frames)
+        for i in range(frames_len):
+            frame = cv2.cvtColor(frames[i].copy(), cv2.COLOR_GRAY2BGR)
 
-        x = np.interp(ts, data[:, 0], data[:, 1])
-        y = np.interp(ts, data[:, 0], data[:, 2])
-        idx = np.searchsorted(data[:, 0], ts, side="right") - 1
-        key_down = data[np.clip(idx, 0, len(data) - 1), 3]
+            for label in labels:
+                is_down = label[-1] == 0
+                color = (0,0,255) if is_down else (0,255,0)
+                cv2.circle(frame, (int(label[0]), int(label[1])), 2, color, -1)
 
-        return ts, x, y, key_down
+            plt.subplot(1, frames_len, i+1)
+            plt.imshow(frame, cmap="brg")
 
-    def get_debug_screenshots_from_video(self, out_dir, video_path, is_down, frames, screen_px, frame_no):
-        out_dir = Path(out_dir)
-        (out_dir / video_path.name).mkdir(exist_ok=True, parents=True)
-        color = (0, 0, 255) if is_down else (255, 0, 0)
+        plt.show()    
 
-        grayscale, resized, orig = frames
-        rec_width = 5
-        rec_height = 5
-        tr = derive_transform(orig.shape[1], orig.shape[0])
-        screen_px = osu_to_px(screen_px[0], screen_px[1], tr)
-
-        def draw_rect(frame, suffix = ""):
-            cv2.rectangle(
-                frame,
-                (int(screen_px[0] - rec_width), int(screen_px[1] - rec_height)),
-                (int(screen_px[0] + rec_width), int(screen_px[1] + rec_height)),
-                color,
-                -1,
-            )
-            cv2.imwrite(str(out_dir / video_path.name / f"{frame_no}{suffix}.jpg"), frame)
-
-        draw_rect(grayscale, "_resized_gray")
-        draw_rect(resized, "_resized")
-        draw_rect(orig, "_orig")
-        cv2.imshow("", orig)
-        cv2.waitKey(0)
 
     def get_videos_resolution(self, source_dir: Path):
         video_path = next(source_dir.glob("*.mp4"), None)
@@ -163,77 +143,11 @@ class ReplayShardBuilder:
         finally:
             cap.release()
 
-    def dervive_max_step(self, replay_files: list[Path]):
-        cords = []
-        # filter replays by video existence
-        for replay_file in replay_files:
-            try:
-                if not Path(f"{replay_file.parent}/{replay_file.stem}.mp4").exists():
-                    continue
-                replay = load_replay(replay_file)
-                cords.append(replay.replay_data[:, 1:3])
-            except Exception as e:
-                print(e)
-
-        cords = np.concatenate(cords, axis=0)
-        transform = derive_transform(self.resize_video_resolution[0], self.resize_video_resolution[1])
-        cords = [osu_to_px(x, y, transform) for x, y in cords]
-        diff = np.diff(cords, axis=0)
-        steps = np.linalg.norm(diff, axis=1)
-
-        return np.percentile(steps, 99.5)
+    def object_time_to_frame(self, t, video_offset, frame_ms):
+        return max(0, round((t + video_offset) / frame_ms))
     
-    def lookup_cursor_position_in_frame(self, frame, template):
-        result = cv2.matchTemplate(
-            frame,
-            template,
-            cv2.TM_CCOEFF_NORMED
-        )
-
-        _, confidence, _, location = cv2.minMaxLoc(result)
-
-        h, w = template.shape[:2]
-
-        center = (
-            location[0] + w // 2,
-            location[1] + h // 2
-        )
-
-        return center, confidence
-
-    def get_cursor_positions(self, video_path, seek_pos, n = 20):
-        temp = cv2.imread("./cursor-temp.png")
-        cap = cv2.VideoCapture(f"{video_path.parent}/{video_path.stem}_no_objects.mp4")
-        if not cap.isOpened():
-            raise RuntimeError("Could not open video")
-        
-        for _ in range(int(seek_pos)):
-            cap.grab()
-
-        try:
-            positions = []
-            W, H = self.video_resolution
-            for _ in range(n):
-                _, frame = cap.read()
-                frame = cv2.resize(frame, (W, H), interpolation=cv2.INTER_AREA)
-                pos, _ = self.lookup_cursor_position_in_frame(frame, temp)
-                positions.append(pos)
-
-            return np.array(positions)
-        finally:
-            cap.release()
-
-    def find_best_match_index_in_replay(self, replay, cursor_positions, n = 20, window = 200):
-        best_i = -1
-        m = float("inf")
-        for i in range(window):
-            data = replay[i:i+n]
-            dists = np.linalg.norm(data - cursor_positions, axis=1)
-            s = dists.sum()
-            if s < m:
-                m = s
-                best_i = i
-        return best_i
+    def frame_to_object_time(self, frame_idx, video_offset, frame_ms):
+        return frame_idx * frame_ms - video_offset
 
     def get_danser_video_offset_by_audio(self, replay_file: Path, map_general: MapGeneral):
         _, video_audio_file, osu_file = self._inputs[replay_file]
@@ -256,8 +170,26 @@ class ReplayShardBuilder:
         
         return lag_ms, confidence
 
-    def _extract(self, replay_file: Path, map_general: MapGeneral, difficulty: MapDifficulty,
-                 hit_objects: list[HitObject], writer: ShardWriter):
+    def get_hit_objects_hit_times(self, hit_objects: list[HitObject], video_offset: int, frame_ms, diff: MapDifficulty):
+        result = IntervalTree()
+        preempt = get_preempt(diff.ar)
+        preempt_in_frames = self.object_time_to_frame(preempt, 0, frame_ms)
+
+        for hit_object in hit_objects:
+            end_time = hit_object.slider.end_time if hit_object.slider else hit_object.time
+            start_frame = self.object_time_to_frame(hit_object.time, video_offset, frame_ms)
+            end_frame = self.object_time_to_frame(end_time, video_offset, frame_ms)
+
+            result.addi(start_frame-preempt_in_frames, end_frame, hit_object)
+
+        return result
+
+    def skip(self, capture: cv2.VideoCapture, amount):
+        for _ in range(amount):
+            if not capture.grab():
+                break
+
+    def _extract(self, replay_file: Path, map_general: MapGeneral, hit_objects: list[HitObject], diff: MapDifficulty, writer: ShardWriter):
         video_path, _, _ = self._inputs[replay_file]
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
@@ -274,43 +206,49 @@ class ReplayShardBuilder:
 
             resize_W, resize_H = self.resize_video_resolution
             output_transform = derive_transform(resize_W, resize_H)
-            sorted_objects = sorted_objects
 
-            next_pos = 0
-            last_idx = -1
-            last_frame = None
+            hit_object_by_frame = self.get_hit_objects_hit_times(sorted_objects, VIDEO_OFFSET, frame_ms, diff)
+            frames = deque(maxlen=self.frames_number)
 
-            for i, hit_object in enumerate(sorted_objects, 1):
-                target = max(0, round((hit_object.time + VIDEO_OFFSET) / frame_ms))
+            skip_amount = self.object_time_to_frame(sorted_objects[0].time, VIDEO_OFFSET, frame_ms)
 
-                if target == last_idx:
-                    frame = last_frame
-                else:
-                    for _ in range(target - next_pos):
-                        if not cap.grab():
-                            return
-                    ok, frame = cap.read()
-                    if not ok:
-                        break
-                    next_pos = target + 1
-                    last_idx, last_frame = target, frame
+            self.skip(cap, skip_amount)
+            frame_idx = skip_amount
 
-                scr = np.array(
-                    osu_to_px(hit_object.x, hit_object.y, output_transform),
-                    dtype=np.float32,
-                )
+            while True:
+                ok, frame = cap.read()
+                if not ok:
+                    break
+                
+                grayscaled_frame, _ = process_frame(frame, self.resize_video_resolution)
+                if not frames:
+                    frames.extend([grayscaled_frame] * (self.frames_number - 1))
+                frames.append(grayscaled_frame)
+                t_ms = self.frame_to_object_time(frame_idx, VIDEO_OFFSET, frame_ms)
+                visible_objects = hit_object_by_frame[frame_idx]
+                labels = []
+                for visible_object in visible_objects:
+                    hit_object: HitObject = visible_object.data
 
-                grayscaled_frame, resized_frame = process_frame(frame, self.resize_video_resolution)
-                data = np.array([grayscaled_frame])
-                target = np.array([scr[0], scr[1], float(True)], dtype=np.float32)
+                    visible_object_hit_frame = self.object_time_to_frame(hit_object.time, VIDEO_OFFSET, frame_ms)
+                    frames_idx_diff = visible_object_hit_frame-frame_idx
+                    x, y = osu_to_px(hit_object.x, hit_object.y, output_transform)
+                    
+                    if hit_object.slider:
+                        if t_ms >= hit_object.time:
+                            bx, by = hit_object.slider.ball_pos(t_ms)
+                            x, y = osu_to_px(bx, by, output_transform)
+                            frames_idx_diff = 0
+                    labels.append([x,y, frames_idx_diff])
 
-                writer.add(data, target)
-                if self.debug_folder:
-                    frame_no = i
-                    assert frame is not None
-                    self.get_debug_screenshots_from_video(
-                        self.debug_folder, video_path, True, (grayscaled_frame.copy(), resized_frame.copy(), frame.copy()),
-                        (hit_object.x, hit_object.y), frame_no,
-                    )
+                labels = np.array(labels, dtype=np.float32)
+
+                if self.debug_output:
+                    self.show_debug(frames, labels)
+                
+                writer.add(np.stack(frames), labels)
+                
+                frame_idx += 1
+
         finally:
             cap.release()

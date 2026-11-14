@@ -1,10 +1,6 @@
-from os import PathLike
-
 import torch as t
-from iwmymdosr.dataset.datasets.objects import Meta
-from iwmymdosr.dataset.datasets.replay_shard import ReplayShards
-from iwmymdosr.model.early_stopping import EarlyStopping
 from iwmymdosr.model.model import Iwmymdosr
+from iwmymdosr.model.utils import transfer_to_device
 
 def get_pos_weight(dataset: t.utils.data.DataLoader):
     total = 0
@@ -19,35 +15,41 @@ def get_pos_weight(dataset: t.utils.data.DataLoader):
 
     return t.tensor(neg/pos)
 
-def train(model: Iwmymdosr, trainset: t.utils.data.DataLoader, valset: t.utils.data.DataLoader, device, output_dir: PathLike[str] | str, epoches = 100, lr=1e-3, report_every = 20):
+def train(model: Iwmymdosr, trainset: t.utils.data.DataLoader, valset: t.utils.data.DataLoader, device, criterion, early_stopping, epoches = 100, lr=1e-3, report_every = 20):
     optim = t.optim.Adam(model.parameters(), lr)
-    mse_criteria = t.nn.MSELoss()
-    early_stopping = EarlyStopping(model, output_dir, min_delta=1e-3)
 
     for epoch_n in range(1, epoches+1):
         train_loss = 0.0
         model.train()
+        samples_n = 0
         for batch_n, (x, y) in enumerate(trainset, 1):
-            x, y = x.to(device), y.to(device)
+            x, y = transfer_to_device(x, device), transfer_to_device(y, device)
             optim.zero_grad()
-            model_dxdy_out = model.forward(x)
-            mse_loss = mse_criteria(model_dxdy_out, y[:, :2])
-            loss = mse_loss
+            with t.autocast("cuda", dtype=t.bfloat16):
+                out = model.forward(x)
+                loss = criterion(out, y)
             loss.backward()
             optim.step()
-            train_loss += loss.item() / len(trainset)
+            train_loss += loss.item() * x.size(0)
+            samples_n += x.size(0)
             if batch_n % report_every == 0:
-                print(f"{epoch_n}/{batch_n} train loss {(train_loss / batch_n):.6f}")
+                print(f"{epoch_n}/{batch_n} train loss {(train_loss / samples_n):.6f}")
 
+        train_loss /= samples_n
+        
+        samples_n = 0
         val_loss = 0.0
         model.eval()
         with t.no_grad():
             for x, y in valset:
-                x, y = x.to(device), y.to(device)
-                model_dxdy_out = model.forward(x)
-                mse_loss = mse_criteria(model_dxdy_out, y[:, :2])
-                loss = mse_loss
-                val_loss += loss.item() / len(valset)
+                x, y = transfer_to_device(x, device), transfer_to_device(y, device)
+                with t.autocast("cuda", dtype=t.bfloat16):
+                    out = model.forward(x)
+                    loss = criterion(out, y)
+                val_loss += loss.item() * x.size(0)
+                samples_n += x.size(0)
+        
+        val_loss /= samples_n
 
         print(f"Epoch {epoch_n}/{epoches}   train_loss {train_loss:.6f}")
         print(f"                            val_loss {val_loss:.6f}")
