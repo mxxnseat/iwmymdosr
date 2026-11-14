@@ -12,7 +12,7 @@ def common_cfg(danser_dir: Path, output_dir: Path, songs_dir: PathLike[str]):
     cfg["Graphics"]["Height"] = 720
     cfg["Recording"]["FrameWidth"] = 1280
     cfg["Recording"]["FrameHeight"] = 720
-    cfg["Recording"]["FPS"] = 100
+    cfg["Recording"]["FPS"] = 30
 
     return cfg
 

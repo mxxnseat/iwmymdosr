@@ -105,6 +105,7 @@ def pipeline(args):
     if args.clean:
         cleanup_replays_without_beatmap(args.output_dir)
         cleanup_videos(args.output_dir)
+        cleanup_video_audio(args.output_dir)
     if args.replays:
         danser.make_profile(args.danser_dir, Path(args.output_dir).resolve(), Path(args.source_dir).resolve(), args.danser_config)
         asyncio.run(get_video_from_replays(args.source_dir, args.max_replays, args.specific,  args.danser_config))
@@ -113,6 +114,13 @@ def pipeline(args):
 def cleanup_videos(source_dir: PathLike[str]):
     source_dir = Path(source_dir)
     files_to_delete = source_dir.rglob("*.mp4")
+
+    for file in files_to_delete:
+        os.remove(file)
+
+def cleanup_video_audio(source_dir: PathLike[str]):
+    source_dir = Path(source_dir)
+    files_to_delete = source_dir.rglob("*.mp3")
 
     for file in files_to_delete:
         os.remove(file)

@@ -17,7 +17,7 @@ def read_dataset_meta(dir: PathLike[str] | str):
     dir = Path(dir)
     meta = json.loads((dir / META_FILENAME).read_text())
 
-    return Meta(frames_n=meta["frames_n"],
+    return Meta(frames_number=meta["frames_number"],
                 resolution=meta["resolution"],
                 counts=meta["counts"]
         )

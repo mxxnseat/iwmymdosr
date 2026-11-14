@@ -4,7 +4,6 @@ import numpy as np
 import torch as t
 
 from iwmymdosr.dataset.datasets.utils import write_dataset_meta
-from iwmymdosr.utils.main import RunningStd
 
 class ShardWriter:
     """Buffers samples and flushes a shard file every `samples_per_shard`."""
@@ -17,8 +16,6 @@ class ShardWriter:
         self.counts: dict[str, int] = {}
         self.shard_id = 0
         self._reset()
-
-        self.running_std = RunningStd(n_features=2)
 
     def _reset(self):
         self.frames, self.targets = [], []
@@ -33,11 +30,12 @@ class ShardWriter:
         if not self.frames:
             return
         name = f"shard_{self.shard_id:05d}.pt"
-        target_stack = np.stack(self.targets)
+        frames_stack = np.stack(self.frames)
+        targets = [t.tensor(x) for x in self.targets]
         t.save(
             {
-                "frames": t.from_numpy(np.stack(self.frames)),
-                "target": t.from_numpy(target_stack),
+                "frames": t.from_numpy(frames_stack),
+                "target": targets,
             },
             self.out_dir / name,
         )

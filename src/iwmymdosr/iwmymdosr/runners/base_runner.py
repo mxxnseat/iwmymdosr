@@ -14,7 +14,6 @@ from iwmymdosr.iwmymdosr.utils import denormalize_output
 from iwmymdosr.model.evaluate import evaluate
 from iwmymdosr.model.model import Iwmymdosr
 
-
 Frame = NDArray[np.uint8]
 
 class BaseRunner:
@@ -22,22 +21,31 @@ class BaseRunner:
         self.device = device
         self.meta = meta
         self.model = model
-        self.queue = deque(maxlen=self.meta.frames_n)
+        self.queue = deque(maxlen=self.meta.frames_number)
 
     def step(self):
-        frame = np.asarray(self.get_frame())
+        frame = self.get_frame()
         grayscaled_frame, _ = process_frame(frame, self.meta.resolution)
-        H, W, _ = frame.shape
         inp = sample(t.from_numpy(grayscaled_frame))
-        inp = inp.to(self.device)
-        dx_dy = evaluate(self.model, inp.unsqueeze(0).unsqueeze(0))
-        dx_dy = dx_dy.squeeze(0).tolist()
-        d = denormalize_output((dx_dy[0], dx_dy[1]), (W, H), self.meta)
-        self.move_cursor(d)
+        self.queue.append(inp)
+
+        if len(self.queue) < self.meta.frames_number:
+            return None
+        
+        stack = t.from_numpy(np.stack(self.queue)).to(self.device)
+        heatmap = evaluate(self.model, stack.unsqueeze(0))
+        x, y, has_target = denormalize_output(heatmap, self.get_current_resolution(), self.meta, target_thr=0.2)
+        if not has_target:
+            return heatmap
+        self.move_cursor((x,y))
+        return heatmap
 
     def run(self):
         while True:
             self.step()
+
+    @abstractmethod
+    def get_current_resolution(self) -> tuple[int, int]: ...
 
     @abstractmethod
     def get_frame(self)-> Frame | None:  ...
